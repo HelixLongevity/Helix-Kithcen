@@ -1,0 +1,89 @@
+@import "tailwindcss";
+
+@theme {
+  --color-navy: #0A1628;
+  --color-navy-light: #11213B;
+  --color-navy-lighter: #1A2D4A;
+  --color-gold: #C8952A;
+  --color-gold-light: #D4A94D;
+  --color-gold-dark: #A67A1F;
+  --color-cream: #F5F0E8;
+  --color-cream-dark: #E8E0D0;
+}
+
+body {
+  margin: 0;
+  background-color: var(--color-navy);
+  color: #E2E8F0;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+@keyframes spin-slow {
+  to { transform: rotate(360deg); }
+}
+
+.animate-spin-slow {
+  animation: spin-slow 3s linear infinite;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.4s ease-out both;
+}
+
+/* Print styles */
+@media print {
+  body {
+    background: white !important;
+    color: black !important;
+  }
+
+  .no-print,
+  header,
+  footer,
+  nav,
+  button {
+    display: none !important;
+  }
+
+  .print-view {
+    position: static !important;
+    background: white !important;
+    overflow: visible !important;
+  }
+}
+
+/* Gold slider thumb */
+.slider-gold::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #C8952A;
+  border: 2px solid #D4A94D;
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(200, 149, 42, 0.3);
+}
+.slider-gold::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #C8952A;
+  border: 2px solid #D4A94D;
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(200, 149, 42, 0.3);
+}
+
+/* Line clamp utility */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
