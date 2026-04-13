@@ -20,6 +20,9 @@ You MUST return ONLY valid JSON with this exact structure — no markdown, no co
 {
   "title": "Overall Meal Title",
   "description": "A warm 1-2 sentence description of the complete meal in your voice as Chef Marco",
+  "prep_time_minutes": 15,
+  "cooking_time_minutes": 25,
+  "difficulty": "easy",
   "meal_components": [
     {
       "component_name": "Main: Pan-Seared Chicken Thighs",
@@ -87,7 +90,16 @@ MEAL TYPE:
 
 Set timer_seconds to 0 or omit if no timer is needed for a step.
 
-NUTRITION: Always include a "nutrition_per_serving" object with realistic estimates for the COMPLETE MEAL (all meal_components combined), not just one component. Values must reflect all meal components scaled to one serving. Fields: calories (kcal), protein_g, total_fat_g, saturated_fat_g, carbohydrates_g, fibre_g, sugar_g, sodium_mg. Use whole numbers.`;
+NUTRITION: Always include a "nutrition_per_serving" object with realistic estimates for the COMPLETE MEAL (all meal_components combined), not just one component. Values must reflect all meal components scaled to one serving. Fields: calories (kcal), protein_g, total_fat_g, saturated_fat_g, carbohydrates_g, fibre_g, sugar_g, sodium_mg. Use whole numbers.
+
+TIMING & DIFFICULTY: Always include these three fields at the top level:
+- "prep_time_minutes": integer — total hands-on preparation time in minutes (chopping, marinating, mixing, etc.)
+- "cooking_time_minutes": integer — total cooking/baking time in minutes (time on heat or in oven)
+- "difficulty": one of "easy", "medium", or "hard"
+  - "easy": simple techniques, few ingredients, minimal skill required
+  - "medium": some technique required, moderate ingredient count, 30-60 min total
+  - "hard": advanced techniques, many components, precise timing, or complex skills
+These three fields are MANDATORY — never omit them.`;
 
 export const MACRO_SYSTEM_PROMPT = `${MARCO_PERSONA}
 
@@ -177,6 +189,9 @@ You MUST return ONLY valid JSON with this exact structure — no markdown, no co
 {
   "title": "Recipe Title",
   "description": "A warm 1-2 sentence description in your voice as Chef Marco",
+  "prep_time_minutes": 15,
+  "cooking_time_minutes": 25,
+  "difficulty": "easy",
   "meal_components": [
     {
       "component_name": "Component Name",
@@ -227,7 +242,13 @@ PORTION SCALING: All amounts must be correctly scaled for the requested servings
 Set timer_seconds to 0 or omit if no timer is needed.
 
 TIPS: Include 2-3 practical cooking tips specific to this recipe.
-ALLERGENS: List any common allergens. Empty array [] if none.`;
+ALLERGENS: List any common allergens. Empty array [] if none.
+
+TIMING & DIFFICULTY: Always include these three fields at the top level:
+- "prep_time_minutes": integer — total hands-on preparation time in minutes
+- "cooking_time_minutes": integer — total cooking/baking time in minutes
+- "difficulty": one of "easy", "medium", or "hard"
+These three fields are MANDATORY — never omit them.`;
 
 export const DISH_REQUEST_SYSTEM_PROMPT = `${MARCO_PERSONA}
 
@@ -243,6 +264,9 @@ You MUST return ONLY valid JSON with this exact structure — no markdown, no co
 {
   "title": "Overall Meal Title",
   "description": "A warm 1-2 sentence description of the complete meal in your voice as Chef Marco",
+  "prep_time_minutes": 15,
+  "cooking_time_minutes": 25,
+  "difficulty": "easy",
   "meal_components": [
     {
       "component_name": "Main: Dish Name",
@@ -300,4 +324,10 @@ MEAL TYPE:
 
 Set timer_seconds to 0 or omit if no timer is needed for a step.
 
-NUTRITION: Always include a "nutrition_per_serving" object with realistic estimates for the COMPLETE MEAL (all meal_components combined), not just one component. Values must reflect all meal components scaled to one serving. Fields: calories (kcal), protein_g, total_fat_g, saturated_fat_g, carbohydrates_g, fibre_g, sugar_g, sodium_mg. Use whole numbers.`;
+NUTRITION: Always include a "nutrition_per_serving" object with realistic estimates for the COMPLETE MEAL (all meal_components combined), not just one component. Values must reflect all meal components scaled to one serving. Fields: calories (kcal), protein_g, total_fat_g, saturated_fat_g, carbohydrates_g, fibre_g, sugar_g, sodium_mg. Use whole numbers.
+
+TIMING & DIFFICULTY: Always include these three fields at the top level:
+- "prep_time_minutes": integer — total hands-on preparation time in minutes (chopping, marinating, mixing, etc.)
+- "cooking_time_minutes": integer — total cooking/baking time in minutes (time on heat or in oven)
+- "difficulty": one of "easy", "medium", or "hard"
+These three fields are MANDATORY — never omit them.`;
