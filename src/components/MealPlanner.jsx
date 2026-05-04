@@ -163,14 +163,30 @@ function isVolumeUnit(unit) {
   return VOLUME_TSP[unit] !== undefined
 }
 
+// Depluralise common ingredient plurals so "carrots" and "carrot" merge.
+// Handles -ies→-y (berries→berry), -oes→-o (tomatoes→tomato), plain -s (carrots→carrot).
+// Excludes known false positives (asparagus, hummus, couscous, citrus).
+const PLURAL_EXCEPTIONS = /^(asparagus|hummus|couscous|citrus)$/
+function depluralise(name) {
+  if (PLURAL_EXCEPTIONS.test(name)) return name
+  if (name.endsWith('ies') && name.length > 5) return name.slice(0, -3) + 'y'  // berries → berry
+  if (name.endsWith('oes') && name.length > 5) return name.slice(0, -2)         // tomatoes → tomato
+  if (name.endsWith('s') && name.length >= 5)  return name.slice(0, -1)         // carrots → carrot
+  return name
+}
+
 // Normalise ingredient names for grouping — strip cooking descriptors so
-// "broccoli florets" and "broccoli, cut into florets" merge into one line.
+// "kale, stems removed, leaves chopped" and "kale, stems removed, leaves roughly chopped"
+// both collapse to "kale", and "carrots, finely diced" merges with "carrot, diced".
 function normaliseIngredientName(raw) {
   let name = raw.toLowerCase().trim()
   // Remove parenthetical notes like "(low sodium)", "(for rolling)", "(85% cacao)"
   name = name.replace(/\s*\([^)]*\)\s*/g, ' ').trim()
-  // Remove trailing cooking descriptors after comma: "onion, diced" → "onion"
-  name = name.replace(/,\s*(finely|roughly|thinly|coarsely)?\s*(diced|sliced|chopped|minced|grated|shredded|cubed|halved|quartered|trimmed|peeled|crushed|torn|julienned|deseeded|deboned|deveined|cut into[^,]*|butterflied|skin on|skin-on|bone-in|boneless|skinless|drained and rinsed|drained|soaked overnight|soaked|for rolling|for garnish|for serving|as needed|optional|dried|dry|low sodium|low-sodium)$/i, '')
+  // Strip everything after the first comma — handles any descriptor regardless of wording:
+  // "kale, stems removed, leaves chopped" → "kale"
+  // "zucchini, julienned or spiralized" → "zucchini"
+  // "onion, diced" → "onion"
+  name = name.replace(/,.*$/, '').trim()
   // Remove leading adjectives that don't change what you buy
   name = name.replace(/^(fresh|dried|dry|raw|canned|frozen|ground|smoked|roasted|toasted|pitted|extra virgin|low-sodium|low sodium|plain|pure|sea)\s+/i, '')
   // Remove trailing "powder" / "flakes" (e.g. "turmeric powder" → "turmeric")
@@ -179,6 +195,8 @@ function normaliseIngredientName(raw) {
   name = name.replace(/[, ]*(cut into\s+)?florets$/i, '')
   // Collapse whitespace
   name = name.trim().replace(/\s+/g, ' ')
+  // De-pluralise so "carrots" and "carrot" group together
+  name = depluralise(name)
   return name
 }
 
@@ -512,13 +530,17 @@ export default function MealPlanner({ plan, onUpdatePlan, favourites, onGenerate
 
     const groups = groupEntries(allEntries)
 
-    const items = groups.map((group) => ({
-      name: group.name,
-      displayName: group.entries[0].name || group.name,
-      total: formatGroupTotal(group),
-      category: resolveAisle(group.entries),
-      entries: group.entries,
-    }))
+    const items = groups.map((group) => {
+      const cleanName = group.name
+      const displayName = cleanName.charAt(0).toUpperCase() + cleanName.slice(1)
+      return {
+        name: cleanName,
+        displayName,
+        total: formatGroupTotal(group),
+        category: resolveAisle(group.entries),
+        entries: group.entries,
+      }
+    })
 
     const byCategory = {}
     items.forEach((item) => {
