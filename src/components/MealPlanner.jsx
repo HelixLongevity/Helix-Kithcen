@@ -40,6 +40,30 @@ const INGREDIENT_CATEGORIES = {
   Pantry: ['oil', 'olive oil', 'salt', 'pepper', 'sugar', 'honey', 'vinegar', 'soy sauce', 'stock', 'broth', 'sauce', 'paste', 'cumin', 'paprika', 'turmeric', 'oregano', 'basil', 'thyme', 'rosemary', 'cinnamon', 'coriander', 'parsley', 'dill', 'mint', 'bay', 'mustard', 'ketchup', 'mayo', 'sriracha', 'sesame', 'coconut milk', 'tomato paste', 'tomato sauce', 'passata', 'cornflour', 'baking', 'vanilla', 'cacao', 'cocoa', 'chocolate', 'maple syrup', 'agave', 'nutritional yeast', 'miso', 'fish sauce', 'oyster sauce', 'hoisin', 'curry', 'garam masala', 'chilli flakes', 'nutmeg', 'cardamom', 'cloves', 'allspice', 'fennel seeds'],
 }
 
+// Maps old keyword-match categories to the new supermarket aisle names
+const OLD_TO_NEW_AISLE = {
+  Proteins: 'Meat & Seafood',
+  Dairy: 'Dairy & Eggs',
+  Fruit: 'Produce',
+  Vegetables: 'Produce',
+  'Grains & Pasta': 'Pantry',
+  'Nuts & Seeds': 'Pantry',
+  Pantry: 'Pantry',
+  Other: 'Other',
+}
+
+// Ordered aisle display config — matches ShoppingList.jsx
+const AISLE_DISPLAY = [
+  { key: 'Produce',        emoji: '🥬' },
+  { key: 'Meat & Seafood', emoji: '🥩' },
+  { key: 'Dairy & Eggs',   emoji: '🥛' },
+  { key: 'Pantry',         emoji: '🫙' },
+  { key: 'Bakery',         emoji: '🍞' },
+  { key: 'Frozen',         emoji: '🧊' },
+  { key: 'Deli',           emoji: '🧀' },
+  { key: 'Other',          emoji: '🛒' },
+]
+
 // Words that are cooking descriptors, not ingredients — used to rejoin
 // comma-separated entries like "onion, finely diced" into a single item.
 const DESCRIPTOR_ONLY = /^((finely|roughly|thinly|coarsely)\s+)?(diced|sliced|chopped|minced|grated|shredded|cubed|halved|quartered|trimmed|peeled|crushed|torn|julienned|deseeded|deboned|deveined|bone-in|boneless|skinless|skin-on|to taste|for garnish|for serving|as needed|optional|cut into .+)$/i
@@ -168,6 +192,7 @@ function buildIngredientEntry(ing, day) {
     rawAmount: String(ing.amount || '').trim(),
     unit: normaliseUnit(ing.unit),
     rawUnit: (ing.unit || '').trim(),
+    aisle: ing.aisle || '',
     day,
   }
 }
@@ -276,6 +301,19 @@ function categoriseIngredient(name) {
     if (keywords.some((kw) => lower.includes(kw))) return category
   }
   return 'Other'
+}
+
+// Resolve the aisle for a group of ingredient entries.
+// Prefers the AI-assigned `aisle` field; falls back to keyword matching mapped to new aisle names.
+function resolveAisle(entries) {
+  const aisles = entries.map((e) => e.aisle).filter(Boolean)
+  if (aisles.length > 0) {
+    const counts = {}
+    aisles.forEach((a) => { counts[a] = (counts[a] || 0) + 1 })
+    return Object.entries(counts).sort((a, b) => b[1] - a[1])[0][0]
+  }
+  const oldCategory = categoriseIngredient(entries[0]?.name || '')
+  return OLD_TO_NEW_AISLE[oldCategory] || 'Other'
 }
 
 function extractProteinsFromFavourites(favourites) {
@@ -478,7 +516,7 @@ export default function MealPlanner({ plan, onUpdatePlan, favourites, onGenerate
       name: group.name,
       displayName: group.entries[0].name || group.name,
       total: formatGroupTotal(group),
-      category: categoriseIngredient(group.name),
+      category: resolveAisle(group.entries),
       entries: group.entries,
     }))
 
@@ -488,13 +526,13 @@ export default function MealPlanner({ plan, onUpdatePlan, favourites, onGenerate
       byCategory[item.category].push(item)
     })
 
-    const order = ['Proteins', 'Vegetables', 'Fruit', 'Dairy', 'Grains & Pasta', 'Nuts & Seeds', 'Pantry', 'Other']
     const sorted = {}
-    order.forEach((cat) => {
-      if (byCategory[cat]) {
-        sorted[cat] = byCategory[cat].sort((a, b) => a.name.localeCompare(b.name))
+    AISLE_DISPLAY.forEach(({ key }) => {
+      if (byCategory[key]) {
+        sorted[key] = byCategory[key].sort((a, b) => a.name.localeCompare(b.name))
       }
     })
+    // Any unrecognised aisle not in AISLE_DISPLAY (safety net)
     Object.keys(byCategory).forEach((cat) => {
       if (!sorted[cat]) sorted[cat] = byCategory[cat].sort((a, b) => a.name.localeCompare(b.name))
     })
@@ -978,7 +1016,9 @@ export default function MealPlanner({ plan, onUpdatePlan, favourites, onGenerate
               <div className="space-y-5">
                 {Object.entries(grouped).map(([category, items]) => (
                   <div key={category}>
-                    <h4 className="text-xs font-semibold text-gold/80 uppercase tracking-wider mb-2">{category}</h4>
+                    <h4 className="text-xs font-semibold text-gold/80 uppercase tracking-wider mb-2">
+                      {AISLE_DISPLAY.find((a) => a.key === category)?.emoji} {category}
+                    </h4>
                     <ul className="space-y-1.5">
                       {items.map((item, i) => (
                         <li key={i} className="flex items-start gap-3 text-sm">
