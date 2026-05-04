@@ -82,7 +82,8 @@ SHOPPING AISLE: Every ingredient MUST include an "aisle" field. Use exactly one 
 CRITICAL MEASUREMENT RULES:
 - When units=metric:
   - Weights: always in grams (g) or kilograms (kg)
-  - Volumes: use cups with mL in brackets, e.g. "1¼ cups (310mL)". Always use capital L in mL.
+  - DRY GOODS MUST ALWAYS BE WEIGHED: lentils, chickpeas, rice, pasta, flour, oats, quinoa, couscous, nuts, seeds, and all other dry goods MUST use grams — NEVER cups or tbsp for these ingredients.
+  - Volumes: use cups with mL in brackets, e.g. "1¼ cups (310mL)". Always use capital L in mL. Only use cups for liquids (stock, milk, water, oil).
   - Spoon measures: "2 tbsp (30mL)" or "1 tsp (5mL)" — always include mL equivalent with capital L
   - IMPORTANT: Tablespoon and teaspoon measurements must ALWAYS show mL in brackets, NEVER grams. 1 tbsp = 15mL, 1 tsp = 5mL. Never use grams (g) for liquid or semi-liquid ingredients measured in spoons. For example: "3 tbsp (45mL)" NOT "3 tbsp (60g)".
   - Temperature: °C
@@ -246,6 +247,7 @@ SHOPPING AISLE: Every ingredient MUST include an "aisle" field. Use exactly one 
 
 CRITICAL MEASUREMENT RULES:
 - When units=metric: Weights in g/kg, volumes with mL in brackets (capital L), temperatures in °C
+- DRY GOODS MUST ALWAYS BE WEIGHED: lentils, chickpeas, rice, pasta, flour, oats, quinoa, couscous, nuts, seeds MUST use grams — NEVER cups for these ingredients.
 - When units=imperial: Weights in oz/lbs, volumes in cups/tbsp/tsp (no mL), temperatures in °F
 - Spoon measures in metric MUST include mL: "2 tbsp (30mL)" not "2 tbsp (60g)"
 
@@ -328,7 +330,8 @@ SHOPPING AISLE: Every ingredient MUST include an "aisle" field. Use exactly one 
 CRITICAL MEASUREMENT RULES:
 - When units=metric:
   - Weights: always in grams (g) or kilograms (kg)
-  - Volumes: use cups with mL in brackets, e.g. "1¼ cups (310mL)". Always use capital L in mL.
+  - DRY GOODS MUST ALWAYS BE WEIGHED: lentils, chickpeas, rice, pasta, flour, oats, quinoa, couscous, nuts, seeds, and all other dry goods MUST use grams — NEVER cups or tbsp for these ingredients.
+  - Volumes: use cups with mL in brackets, e.g. "1¼ cups (310mL)". Always use capital L in mL. Only use cups for liquids (stock, milk, water, oil, coconut milk).
   - Spoon measures: "2 tbsp (30mL)" or "1 tsp (5mL)" — always include mL equivalent with capital L
   - IMPORTANT: Tablespoon and teaspoon measurements must ALWAYS show mL in brackets, NEVER grams. 1 tbsp = 15mL, 1 tsp = 5mL. Never use grams (g) for liquid or semi-liquid ingredients measured in spoons. For example: "3 tbsp (45mL)" NOT "3 tbsp (60g)".
   - Temperature: °C

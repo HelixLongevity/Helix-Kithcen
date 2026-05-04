@@ -163,6 +163,44 @@ function isVolumeUnit(unit) {
   return VOLUME_TSP[unit] !== undefined
 }
 
+// Approximate grams per cup for common dry goods.
+// Used to convert volume-measured dry ingredients to grams so they total correctly
+// alongside weight-measured entries of the same ingredient.
+const DRY_GOODS_G_PER_CUP = {
+  // Legumes
+  'lentil': 200, 'red lentil': 200, 'green lentil': 200, 'brown lentil': 200,
+  'chickpea': 200, 'black bean': 200, 'kidney bean': 200, 'cannellini bean': 200,
+  'white bean': 200, 'navy bean': 200, 'split pea': 190, 'edamame': 155,
+  // Grains
+  'rice': 185, 'white rice': 185, 'brown rice': 190, 'basmati rice': 185,
+  'jasmine rice': 185, 'arborio rice': 195, 'quinoa': 170, 'couscous': 175,
+  'oat': 90, 'buckwheat': 170, 'farro': 200, 'barley': 200,
+  // Pasta & noodles (dry)
+  'pasta': 100, 'spaghetti': 100, 'penne': 100, 'fettuccine': 100,
+  'macaroni': 120, 'noodle': 85, 'linguine': 100,
+  // Flour & breadcrumbs
+  'flour': 120, 'plain flour': 120, 'self-raising flour': 120,
+  'almond flour': 96, 'almond meal': 96, 'breadcrumb': 100,
+  // Nuts & seeds
+  'almond': 150, 'cashew': 130, 'walnut': 120, 'pecan': 110,
+  'pine nut': 135, 'pumpkin seed': 130, 'pepita': 130,
+  'sesame seed': 145, 'sunflower seed': 140, 'chia seed': 160,
+  // Sugars
+  'sugar': 200, 'caster sugar': 200, 'brown sugar': 220, 'icing sugar': 120,
+}
+
+// Convert a volume-measured dry good to grams.
+// Returns the gram value if the ingredient is a known dry good, or null if not.
+function dryGoodToGrams(amount, unit, normalisedName) {
+  const amountInCups = (amount * VOLUME_TSP[unit]) / VOLUME_TSP['cup']
+  for (const [key, gPerCup] of Object.entries(DRY_GOODS_G_PER_CUP)) {
+    if (normalisedName === key || normalisedName.startsWith(key + ' ') || normalisedName.includes(' ' + key)) {
+      return Math.round(amountInCups * gPerCup)
+    }
+  }
+  return null
+}
+
 // Depluralise common ingredient plurals so "carrots" and "carrot" merge.
 // Handles -ies→-y (berries→berry), -oes→-o (tomatoes→tomato), plain -s (carrots→carrot).
 // Excludes known false positives (asparagus, hummus, couscous, citrus).
@@ -203,13 +241,31 @@ function normaliseIngredientName(raw) {
 // Build a structured ingredient occurrence from raw recipe data
 function buildIngredientEntry(ing, day) {
   const rawName = (ing.name || '').toLowerCase().trim()
+  const normalisedName = normaliseIngredientName(rawName)
+  let amount = parseAmount(ing.amount)
+  let unit = normaliseUnit(ing.unit)
+  let rawAmount = String(ing.amount || '').trim()
+  let rawUnit = (ing.unit || '').trim()
+
+  // If a dry good is measured in cups/tbsp/tsp, convert to grams so it totals
+  // correctly alongside weight-measured entries of the same ingredient.
+  if (isVolumeUnit(unit) && !isNaN(amount)) {
+    const grams = dryGoodToGrams(amount, unit, normalisedName)
+    if (grams !== null) {
+      amount = grams
+      rawAmount = String(grams)
+      unit = 'g'
+      rawUnit = 'g'
+    }
+  }
+
   return {
     name: rawName,
-    normalisedName: normaliseIngredientName(rawName),
-    amount: parseAmount(ing.amount),
-    rawAmount: String(ing.amount || '').trim(),
-    unit: normaliseUnit(ing.unit),
-    rawUnit: (ing.unit || '').trim(),
+    normalisedName,
+    amount,
+    rawAmount,
+    unit,
+    rawUnit,
     aisle: ing.aisle || '',
     day,
   }
@@ -300,10 +356,11 @@ function formatGroupTotal(group) {
       displayUnit = 'tbsp'
     }
     const mlRaw = displayVal * ML_PER[displayUnit]
-    const ml = Math.floor(mlRaw / 5) * 5
-    const mlStr = `${ml}mL`
+    // Round small amounts (< 10mL) to nearest mL; larger amounts to nearest 5mL
+    const ml = mlRaw < 10 ? Math.round(mlRaw) : Math.floor(mlRaw / 5) * 5
+    const mlDisplay = ml > 0 ? ` (${ml}mL)` : ''
     const suffix = raw.length > 0 ? ` + ${raw.map((e) => e.rawAmount).join(', ')}` : ''
-    return `${formatAmount(displayVal)} ${pluraliseUnit(displayUnit, displayVal)} (${mlStr})${suffix}`
+    return `${formatAmount(displayVal)} ${pluraliseUnit(displayUnit, displayVal)}${mlDisplay}${suffix}`
   }
 
   // Non-volume: straight sum
