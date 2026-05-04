@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from './components/AuthContext'
 import RecipeForm from './components/RecipeForm'
 import RecipeDisplay from './components/RecipeDisplay'
@@ -568,19 +568,16 @@ function AppContent() {
 
   // Cache Edamam nutrition inside the recipe object so future views skip the API call.
   // Also propagates into the favourites list if the recipe is already saved there.
-  const handleCacheNutrition = useCallback((edamamData) => {
-    setRecipe(prev => {
-      if (!prev) return prev
-      const updated = { ...prev, _edamamNutrition: edamamData }
-      // Propagate to favourites if this recipe is saved
-      if (prev._favId) {
-        setFavourites(favs =>
-          favs.map(f => f._favId === prev._favId ? { ...f, _edamamNutrition: edamamData } : f)
-        )
-      }
-      return updated
-    })
-  }, [])
+  const handleCacheNutrition = (edamamData) => {
+    setRecipe(prev => prev ? { ...prev, _edamamNutrition: edamamData } : prev)
+    setFavourites(prev =>
+      prev.map(f =>
+        f._favId && recipe?._favId && f._favId === recipe._favId
+          ? { ...f, _edamamNutrition: edamamData }
+          : f
+      )
+    )
+  }
 
   const viewFavourite = (fav) => {
     setRecipe(fav)
