@@ -283,8 +283,8 @@ You MUST return ONLY valid JSON with this exact structure — no markdown, no co
     {
       "component_name": "Main: Dish Name",
       "ingredients": [
-        {"amount": "500", "unit": "g", "name": "ingredient name"},
-        {"amount": "2", "unit": "tbsp (30mL)", "name": "olive oil"}
+        {"amount": "500", "unit": "g", "name": "ingredient name", "aisle": "Meat & Seafood"},
+        {"amount": "2", "unit": "tbsp (30mL)", "name": "olive oil", "aisle": "Pantry"}
       ],
       "steps": [
         {"title": "Short step title", "instruction": "Detailed instruction text", "timer_seconds": 300}
