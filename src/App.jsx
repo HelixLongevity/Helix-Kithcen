@@ -67,8 +67,8 @@ function canAccess(tier, feature) {
   return (TIER_ACCESS[tier] || []).includes(feature)
 }
 
-// Map macro_match keys to USDA nutrition field names (mirrors MacroTargets.jsx)
-const USDA_KEY_MAP = {
+// Map macro_match keys to nutrition field names
+const NUTRITION_KEY_MAP = {
   calories: 'calories',
   protein: 'protein_g',
   carbohydrates: 'carbohydrates_g',
@@ -82,9 +82,9 @@ function isMacroOff(macroMatch, nutritionData, threshold) {
   if (!macroMatch || !nutritionData) return false
   return Object.entries(macroMatch).some(([key, v]) => {
     if (!v.target || v.target === 0) return false
-    const usdaKey = USDA_KEY_MAP[key]
-    const usdaValue = usdaKey != null ? nutritionData[usdaKey] : undefined
-    const actual = usdaValue != null ? Math.round(usdaValue) : v.actual
+    const nutritionKey = NUTRITION_KEY_MAP[key]
+    const nutritionValue = nutritionKey != null ? nutritionData[nutritionKey] : undefined
+    const actual = nutritionValue != null ? Math.round(nutritionValue) : v.actual
     return Math.abs(actual - v.target) / v.target > threshold
   })
 }
