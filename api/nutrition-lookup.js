@@ -161,6 +161,13 @@ export default async function handler(req, res) {
       ingredients_total: ingrStrings.length,
       not_found: notFound,
       source: 'edamam',
+      health_labels: data.healthLabels || [],
+      diet_labels: data.dietLabels || [],
+      cautions: data.cautions || [],
+      co2_emissions_per_serving: data.totalCO2Emissions
+        ? Math.round(data.totalCO2Emissions / numServings)
+        : null,
+      co2_emissions_class: data.co2EmissionsClass || null,
       details: parsedIngredients.map(i => ({
         name: i.text,
         found: !i.parsed?.some(p => p.status === 'MISSING'),

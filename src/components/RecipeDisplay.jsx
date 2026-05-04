@@ -1,6 +1,43 @@
 import { useState, useEffect, useRef } from 'react'
 import ShoppingList from './ShoppingList'
 
+// Health labels Edamam returns that are relevant to longevity/functional medicine
+const HEALTH_LABEL_CONFIG = {
+  VEGAN:         { label: 'Vegan',          color: 'bg-green-800/30 text-green-300 border-green-600/40',   emoji: '🌱' },
+  VEGETARIAN:    { label: 'Vegetarian',     color: 'bg-emerald-800/30 text-emerald-300 border-emerald-600/40', emoji: '🥦' },
+  PESCATARIAN:   { label: 'Pescatarian',    color: 'bg-cyan-800/30 text-cyan-300 border-cyan-600/40',     emoji: '🐟' },
+  PALEO:         { label: 'Paleo',          color: 'bg-amber-800/30 text-amber-300 border-amber-600/40',  emoji: '🦴' },
+  KETO_FRIENDLY: { label: 'Keto Friendly',  color: 'bg-purple-800/30 text-purple-300 border-purple-600/40', emoji: '⚡' },
+  WHOLE30:       { label: 'Whole30',        color: 'bg-orange-800/30 text-orange-300 border-orange-600/40', emoji: '🎯' },
+  MEDITERRANEAN: { label: 'Mediterranean',  color: 'bg-blue-800/30 text-blue-300 border-blue-600/40',    emoji: '🫒' },
+  DASH:          { label: 'DASH',           color: 'bg-sky-800/30 text-sky-300 border-sky-600/40',       emoji: '💙' },
+  GLUTEN_FREE:   { label: 'Gluten Free',    color: 'bg-yellow-800/30 text-yellow-300 border-yellow-600/40', emoji: '🌾' },
+  DAIRY_FREE:    { label: 'Dairy Free',     color: 'bg-indigo-800/30 text-indigo-300 border-indigo-600/40', emoji: '🥛' },
+  EGG_FREE:      { label: 'Egg Free',       color: 'bg-yellow-800/30 text-yellow-200 border-yellow-500/40', emoji: '🥚' },
+  SOY_FREE:      { label: 'Soy Free',       color: 'bg-lime-800/30 text-lime-300 border-lime-600/40',    emoji: '🫘' },
+}
+
+// Diet classification labels from Edamam (independent verification)
+const DIET_LABEL_CONFIG = {
+  HIGH_PROTEIN: { label: 'High Protein', color: 'bg-red-800/30 text-red-300 border-red-600/40' },
+  LOW_CARB:     { label: 'Low Carb',     color: 'bg-purple-800/30 text-purple-300 border-purple-600/40' },
+  LOW_FAT:      { label: 'Low Fat',      color: 'bg-sky-800/30 text-sky-300 border-sky-600/40' },
+  HIGH_FIBER:   { label: 'High Fibre',   color: 'bg-green-800/30 text-green-300 border-green-600/40' },
+  LOW_SODIUM:   { label: 'Low Sodium',   color: 'bg-teal-800/30 text-teal-300 border-teal-600/40' },
+}
+
+// Carbon footprint class colours (A+ = cleanest, G = highest impact)
+const CO2_CLASS_CONFIG = {
+  'A+': { color: 'bg-green-700/30 text-green-300 border-green-600/40' },
+  'A':  { color: 'bg-green-700/30 text-green-300 border-green-600/40' },
+  'B':  { color: 'bg-lime-700/30 text-lime-300 border-lime-600/40' },
+  'C':  { color: 'bg-yellow-700/30 text-yellow-300 border-yellow-600/40' },
+  'D':  { color: 'bg-amber-700/30 text-amber-300 border-amber-600/40' },
+  'E':  { color: 'bg-orange-700/30 text-orange-300 border-orange-600/40' },
+  'F':  { color: 'bg-red-700/30 text-red-300 border-red-600/40' },
+  'G':  { color: 'bg-red-800/30 text-red-400 border-red-700/40' },
+}
+
 const ALLERGEN_COLORS = {
   gluten: 'bg-amber-700/30 text-amber-300 border-amber-600/40',
   dairy: 'bg-blue-700/30 text-blue-300 border-blue-600/40',
@@ -24,6 +61,7 @@ export default function RecipeDisplay({ recipe, onNewRecipe, isFavourite, onTogg
   const [nutritionSource, setNutritionSource] = useState('ai') // 'ai' | 'edamam'
   const [notFoundIngredients, setNotFoundIngredients] = useState([])
   const [showShoppingList, setShowShoppingList] = useState(false)
+  const [edamamMeta, setEdamamMeta] = useState(null) // health labels, diet labels, CO2
 
   const lastLookupRef = useRef(null)
 
@@ -36,6 +74,12 @@ export default function RecipeDisplay({ recipe, onNewRecipe, isFavourite, onTogg
       setUsdaNutrition(cached.nutrition_per_serving)
       setNutritionSource('edamam')
       setNotFoundIngredients(cached.not_found || [])
+      setEdamamMeta({
+        healthLabels: cached.health_labels || [],
+        dietLabels:   cached.diet_labels   || [],
+        co2Class:     cached.co2_emissions_class        || null,
+        co2PerServing: cached.co2_emissions_per_serving || null,
+      })
       onNutritionData?.(cached.nutrition_per_serving, cached)
       return
     }
@@ -76,6 +120,12 @@ export default function RecipeDisplay({ recipe, onNewRecipe, isFavourite, onTogg
           setUsdaNutrition(data.nutrition_per_serving)
           setNutritionSource('edamam')
           setNotFoundIngredients(data.not_found || [])
+          setEdamamMeta({
+            healthLabels:  data.health_labels              || [],
+            dietLabels:    data.diet_labels                || [],
+            co2Class:      data.co2_emissions_class        || null,
+            co2PerServing: data.co2_emissions_per_serving  || null,
+          })
           onNutritionData?.(data.nutrition_per_serving, data)
           // Cache the result in the recipe object so future views skip this call
           onCacheNutrition?.(data)
@@ -205,6 +255,33 @@ export default function RecipeDisplay({ recipe, onNewRecipe, isFavourite, onTogg
             ))}
           </div>
         )}
+
+        {/* Edamam health & diet labels */}
+        {edamamMeta && (() => {
+          const healthBadges = (edamamMeta.healthLabels || [])
+            .map(k => HEALTH_LABEL_CONFIG[k])
+            .filter(Boolean)
+          const dietBadges = (edamamMeta.dietLabels || [])
+            .map(k => DIET_LABEL_CONFIG[k])
+            .filter(Boolean)
+          const allBadges = [...healthBadges, ...dietBadges]
+          if (allBadges.length === 0) return null
+          return (
+            <div className="flex flex-wrap justify-center gap-2 mt-3">
+              {healthBadges.map((cfg) => (
+                <span key={cfg.label} className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium border ${cfg.color}`}>
+                  <span>{cfg.emoji}</span>
+                  {cfg.label}
+                </span>
+              ))}
+              {dietBadges.map((cfg) => (
+                <span key={cfg.label} className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium border ${cfg.color}`}>
+                  ✓ {cfg.label}
+                </span>
+              ))}
+            </div>
+          )
+        })()}
 
         {/* Action buttons */}
         <div className="flex items-center justify-center gap-3 mt-4">
@@ -450,18 +527,31 @@ export default function RecipeDisplay({ recipe, onNewRecipe, isFavourite, onTogg
               </p>
             )}
             {nutritionSource === 'edamam' ? (
-              <div className="mt-3 flex items-center justify-between gap-2 flex-wrap">
-                <p className="text-xs text-slate-500 opacity-60 leading-relaxed">Nutrition data from Edamam</p>
-                <a
-                  href="https://www.edamam.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-1.5 opacity-60 hover:opacity-90 transition-opacity"
-                  title="Powered by Edamam"
-                >
-                  <span className="text-xs text-slate-400">Powered by</span>
-                  <span className="text-xs font-semibold text-[#6aad48]">Edamam</span>
-                </a>
+              <div className="mt-3 space-y-2">
+                {edamamMeta?.co2Class && (
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-xs text-slate-500">Carbon footprint:</span>
+                    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold border ${CO2_CLASS_CONFIG[edamamMeta.co2Class]?.color || 'bg-slate-700/30 text-slate-300 border-slate-600/40'}`}>
+                      🌱 {edamamMeta.co2Class}
+                    </span>
+                    {edamamMeta.co2PerServing && (
+                      <span className="text-xs text-slate-500">{edamamMeta.co2PerServing}g CO₂ / serving</span>
+                    )}
+                  </div>
+                )}
+                <div className="flex items-center justify-between gap-2 flex-wrap">
+                  <p className="text-xs text-slate-500 opacity-60 leading-relaxed">Nutrition data from Edamam</p>
+                  <a
+                    href="https://www.edamam.com"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1.5 opacity-60 hover:opacity-90 transition-opacity"
+                    title="Powered by Edamam"
+                  >
+                    <span className="text-xs text-slate-400">Powered by</span>
+                    <span className="text-xs font-semibold text-[#6aad48]">Edamam</span>
+                  </a>
+                </div>
               </div>
             ) : (
               <p className="text-xs text-slate-500 opacity-60 mt-3 leading-relaxed">⚠️ This recipe was generated by Chef Marco AI. Nutritional values are estimates only. Use of this app does not constitute medical or nutritional advice. Consult a qualified medical practitioner or dietitian before making significant dietary changes.</p>
