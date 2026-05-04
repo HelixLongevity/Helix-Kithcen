@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import ShoppingList from './ShoppingList'
 
 const ALLERGEN_COLORS = {
   gluten: 'bg-amber-700/30 text-amber-300 border-amber-600/40',
@@ -14,7 +15,7 @@ const ALLERGEN_COLORS = {
   sulphites: 'bg-purple-700/30 text-purple-300 border-purple-600/40',
 }
 
-export default function RecipeDisplay({ recipe, onNewRecipe, isFavourite, onToggleFavourite, onPrint, onNutritionData }) {
+export default function RecipeDisplay({ recipe, onNewRecipe, isFavourite, onToggleFavourite, onPrint, onNutritionData, onCacheNutrition }) {
   const [swapLoading, setSwapLoading] = useState(null)
   const [swapResult, setSwapResult] = useState(null)
   const [swapIndex, setSwapIndex] = useState(null)
@@ -22,11 +23,23 @@ export default function RecipeDisplay({ recipe, onNewRecipe, isFavourite, onTogg
   const [nutritionLoading, setNutritionLoading] = useState(false)
   const [nutritionSource, setNutritionSource] = useState('ai') // 'ai' | 'edamam'
   const [notFoundIngredients, setNotFoundIngredients] = useState([])
+  const [showShoppingList, setShowShoppingList] = useState(false)
 
   const lastLookupRef = useRef(null)
 
   useEffect(() => {
     if (!recipe) return
+
+    // ── Cache hit: nutrition already stored in the recipe object ──────────────
+    if (recipe._edamamNutrition) {
+      const cached = recipe._edamamNutrition
+      setUsdaNutrition(cached.nutrition_per_serving)
+      setNutritionSource('edamam')
+      setNotFoundIngredients(cached.not_found || [])
+      onNutritionData?.(cached.nutrition_per_serving, cached)
+      return
+    }
+
     const allIngredients = (recipe.meal_components || [{ ingredients: recipe.ingredients }])
       .flatMap(c => c.ingredients || [])
     if (allIngredients.length === 0) return
@@ -56,7 +69,6 @@ export default function RecipeDisplay({ recipe, onNewRecipe, isFavourite, onTogg
       .then(data => {
         console.log('[EDAMAM] Response received:', data)
         if (data.fallback || !data.nutrition_per_serving) {
-          // Edamam lookup failed or timed out — keep Marco's estimates
           console.log('[EDAMAM] Falling back to AI estimates (fallback flag or missing data)')
           setNutritionSource('ai')
         } else {
@@ -65,11 +77,12 @@ export default function RecipeDisplay({ recipe, onNewRecipe, isFavourite, onTogg
           setNutritionSource('edamam')
           setNotFoundIngredients(data.not_found || [])
           onNutritionData?.(data.nutrition_per_serving, data)
+          // Cache the result in the recipe object so future views skip this call
+          onCacheNutrition?.(data)
         }
       })
       .catch((err) => {
         console.error('[EDAMAM] Lookup error:', err)
-        // Fall back to AI estimates silently
         setNutritionSource('ai')
       })
       .finally(() => {
@@ -217,8 +230,23 @@ export default function RecipeDisplay({ recipe, onNewRecipe, isFavourite, onTogg
             </svg>
             Print
           </button>
+          <button
+            onClick={() => setShowShoppingList(true)}
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium text-slate-400 transition-all cursor-pointer border border-navy-lighter hover:border-gold/30 hover:text-cream"
+            title="Shopping list"
+          >
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+            </svg>
+            Shop
+          </button>
         </div>
       </div>
+
+      {/* Shopping List Modal */}
+      {showShoppingList && (
+        <ShoppingList recipe={recipe} onClose={() => setShowShoppingList(false)} />
+      )}
 
       {/* Meal Components */}
       {(recipe.meal_components || [{ component_name: null, ingredients: recipe.ingredients, steps: recipe.steps }]).map((component, ci) => {

@@ -27,8 +27,8 @@ You MUST return ONLY valid JSON with this exact structure — no markdown, no co
     {
       "component_name": "Main: Pan-Seared Chicken Thighs",
       "ingredients": [
-        {"amount": "500", "unit": "g", "name": "chicken thighs, bone-in"},
-        {"amount": "2", "unit": "tbsp (30mL)", "name": "olive oil"}
+        {"amount": "500", "unit": "g", "name": "chicken thighs, bone-in", "aisle": "Meat & Seafood"},
+        {"amount": "2", "unit": "tbsp (30mL)", "name": "olive oil", "aisle": "Pantry"}
       ],
       "steps": [
         {"title": "Short step title", "instruction": "Detailed instruction text", "timer_seconds": 300}
@@ -37,8 +37,8 @@ You MUST return ONLY valid JSON with this exact structure — no markdown, no co
     {
       "component_name": "Side: Lemon-Herb Roasted Vegetables",
       "ingredients": [
-        {"amount": "400", "unit": "g", "name": "mixed vegetables (zucchini, capsicum, red onion)"},
-        {"amount": "1", "unit": "tbsp (15mL)", "name": "olive oil"}
+        {"amount": "400", "unit": "g", "name": "mixed vegetables (zucchini, capsicum, red onion)", "aisle": "Produce"},
+        {"amount": "1", "unit": "tbsp (15mL)", "name": "olive oil", "aisle": "Pantry"}
       ],
       "steps": [
         {"title": "Short step title", "instruction": "Detailed instruction text", "timer_seconds": 300}
@@ -69,6 +69,15 @@ MANDATORY — "tips" and "allergens" MUST be included in every response. Never o
 TIPS: Include a "tips" array with exactly 2-3 short, specific technique callouts from you, Chef Marco. These should be practical cooking wisdom relevant to this specific recipe — things like searing techniques, timing tricks, flavour boosters, or common mistakes to avoid. Keep each tip to 1-2 sentences max.
 
 ALLERGENS: Include an "allergens" array listing any common allergens present in the recipe. Check for: gluten, dairy, eggs, nuts, shellfish, soy, sesame, fish, celery, mustard, sulphites. Use lowercase strings. If no allergens are present, return an empty array [].
+
+SHOPPING AISLE: Every ingredient MUST include an "aisle" field. Use exactly one of these values:
+- "Produce" — fresh fruit, vegetables, herbs, salad leaves, mushrooms
+- "Meat & Seafood" — all meat, poultry, fish, shellfish, deli meats
+- "Dairy & Eggs" — milk, cheese, butter, yoghurt, cream, eggs, cream cheese
+- "Pantry" — canned goods, dry pasta, rice, flour, sugar, oils, vinegars, condiments, sauces, spices, nuts, seeds, stock
+- "Bakery" — bread, wraps, tortillas, pastry, pizza base, breadcrumbs
+- "Frozen" — frozen vegetables, frozen protein, frozen pastry
+- "Deli" — sliced deli meats, olives, dips, prepared salads (from deli counter)
 
 CRITICAL MEASUREMENT RULES:
 - When units=metric:
@@ -196,7 +205,7 @@ You MUST return ONLY valid JSON with this exact structure — no markdown, no co
     {
       "component_name": "Component Name",
       "ingredients": [
-        {"amount": "500", "unit": "g", "name": "chicken breast"}
+        {"amount": "500", "unit": "g", "name": "chicken breast", "aisle": "Meat & Seafood"}
       ],
       "steps": [
         {"title": "Step title", "instruction": "Detailed instruction", "timer_seconds": 300}
@@ -231,6 +240,9 @@ You MUST return ONLY valid JSON with this exact structure — no markdown, no co
 MANDATORY — "tips", "allergens", "macro_match", and "macro_notes" MUST be included in every response.
 
 MACRO MATCH: For each macro target provided by the user, include an entry in macro_match showing target vs actual. Be honest — if you can't hit a target exactly, show the real number.
+
+SHOPPING AISLE: Every ingredient MUST include an "aisle" field. Use exactly one of:
+"Produce", "Meat & Seafood", "Dairy & Eggs", "Pantry", "Bakery", "Frozen", "Deli"
 
 CRITICAL MEASUREMENT RULES:
 - When units=metric: Weights in g/kg, volumes with mL in brackets (capital L), temperatures in °C
@@ -303,6 +315,15 @@ MANDATORY — "tips" and "allergens" MUST be included in every response. Never o
 TIPS: Include a "tips" array with exactly 2-3 short, specific technique callouts from you, Chef Marco. These should be practical cooking wisdom relevant to this specific recipe — things like searing techniques, timing tricks, flavour boosters, or common mistakes to avoid. Keep each tip to 1-2 sentences max.
 
 ALLERGENS: Include an "allergens" array listing any common allergens present in the recipe. Check for: gluten, dairy, eggs, nuts, shellfish, soy, sesame, fish, celery, mustard, sulphites. Use lowercase strings. If no allergens are present, return an empty array [].
+
+SHOPPING AISLE: Every ingredient MUST include an "aisle" field. Use exactly one of these values:
+- "Produce" — fresh fruit, vegetables, herbs, salad leaves, mushrooms
+- "Meat & Seafood" — all meat, poultry, fish, shellfish, deli meats
+- "Dairy & Eggs" — milk, cheese, butter, yoghurt, cream, eggs, cream cheese
+- "Pantry" — canned goods, dry pasta, rice, flour, sugar, oils, vinegars, condiments, sauces, spices, nuts, seeds, stock
+- "Bakery" — bread, wraps, tortillas, pastry, pizza base, breadcrumbs
+- "Frozen" — frozen vegetables, frozen protein, frozen pastry
+- "Deli" — sliced deli meats, olives, dips, prepared salads (from deli counter)
 
 CRITICAL MEASUREMENT RULES:
 - When units=metric:
