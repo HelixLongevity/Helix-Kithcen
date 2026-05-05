@@ -3,12 +3,23 @@ import { loadStripe } from '@stripe/stripe-js'
 import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js'
 import HelixLogo from './HelixLogo'
 
+const PROMO_EXPIRY = new Date("2026-06-03T23:59:59+10:00")
+
+const PROMO = {
+  label: "Launch Offer",
+  headline: "50% Off + 7-Day Free Trial",
+  body: "50% off to celebrate our biggest update yet — Chef Marco just got a major upgrade with smarter nutrition analysis, health labels, diet classifications, and carbon footprint data for every recipe. To mark the occasion, all plans are 50% off until 3 June 2026. No code needed.",
+  expiry: "Ends 3 June 2026",
+}
+
 const TIERS = [
   {
     id: 'starter',
     name: 'Starter',
     monthlyPrice: 9.99,
     yearlyPrice: 99.99,
+    promoMonthlyPrice: 4.99,
+    promoYearlyPrice: 49.99,
     features: [
       'AI recipe generation',
       'Save favourites',
@@ -21,6 +32,8 @@ const TIERS = [
     name: 'Kitchen',
     monthlyPrice: 19.99,
     yearlyPrice: 199.99,
+    promoMonthlyPrice: 9.99,
+    promoYearlyPrice: 99.99,
     popular: true,
     features: [
       'Everything in Starter',
@@ -35,6 +48,8 @@ const TIERS = [
     name: 'Performance',
     monthlyPrice: 29.99,
     yearlyPrice: 299.99,
+    promoMonthlyPrice: 14.99,
+    promoYearlyPrice: 149.99,
     features: [
       'Everything in Kitchen',
       'Macro Targets feature',
@@ -45,7 +60,7 @@ const TIERS = [
   },
 ]
 
-function CheckoutForm({ tier, interval, onSuccess, onCancel, authFetch }) {
+function CheckoutForm({ tier, interval, onSuccess, onCancel, authFetch, isPromoActive }) {
   const stripe = useStripe()
   const elements = useElements()
   const [loading, setLoading] = useState(false)
@@ -94,14 +109,20 @@ function CheckoutForm({ tier, interval, onSuccess, onCancel, authFetch }) {
     }
   }
 
-  const price = interval === 'month' ? tier.monthlyPrice : tier.yearlyPrice
+  const basePrice = interval === 'month' ? tier.monthlyPrice : tier.yearlyPrice
+  const promoPrice = isPromoActive ? (interval === 'month' ? tier.promoMonthlyPrice : tier.promoYearlyPrice) : null
+  const displayPrice = promoPrice ?? basePrice
 
   return (
     <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 px-4">
       <div className="bg-navy-light rounded-2xl p-8 border border-navy-lighter/50 max-w-md w-full">
         <h3 className="text-xl font-bold text-cream mb-1">Subscribe to {tier.name}</h3>
         <p className="text-slate-400 text-sm mb-6">
-          ${price.toFixed(2)} AUD/{interval === 'month' ? 'month' : 'year'} — 7-day free trial
+          {isPromoActive && promoPrice ? (
+            <><span className="line-through text-slate-500">${basePrice.toFixed(2)}</span>{' '}<span className="text-gold font-semibold">${promoPrice.toFixed(2)}</span> AUD/{interval === 'month' ? 'month' : 'year'} — 7-day free trial</>
+          ) : (
+            `$${displayPrice.toFixed(2)} AUD/${interval === 'month' ? 'month' : 'year'} — 7-day free trial`
+          )}
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -161,6 +182,8 @@ export default function PricingPage({ onLogin, onRegister, isLoggedIn, authFetch
   const [showAuth, setShowAuth] = useState(null) // 'login' | 'register'
   const [selectedTier, setSelectedTier] = useState(null)
   const [stripePromise, setStripePromise] = useState(null)
+
+  const isPromoActive = new Date() < PROMO_EXPIRY
 
   // Auth form states
   const [authName, setAuthName] = useState('')
@@ -292,6 +315,27 @@ export default function PricingPage({ onLogin, onRegister, isLoggedIn, authFetch
         <p className="text-center text-sm mt-4 mb-6 text-gray-400">Already have an account? <span onClick={onShowLogin} className="text-gold cursor-pointer hover:underline font-semibold">Sign in</span></p>
       </div>
 
+      {/* Promo banner */}
+      {isPromoActive && (
+        <div className="max-w-5xl mx-auto px-4 mb-8">
+          <div className="rounded-2xl px-6 py-5 md:px-8 md:py-6 flex flex-col sm:flex-row items-center gap-4 sm:gap-6 bg-gold/10 border border-gold/30">
+            <div className="shrink-0 flex items-center justify-center rounded-full w-12 h-12 text-2xl bg-gold/15 border border-gold/30" aria-hidden="true">
+              🎉
+            </div>
+            <div className="flex-1 text-center sm:text-left">
+              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 mb-1">
+                <span className="rounded-full px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-widest bg-gold/20 border border-gold/40 text-gold">
+                  {PROMO.label}
+                </span>
+                <span className="text-xs text-slate-500">{PROMO.expiry}</span>
+              </div>
+              <p className="text-lg md:text-xl font-bold text-cream">{PROMO.headline}</p>
+              <p className="mt-0.5 text-sm text-slate-400">{PROMO.body}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Tier cards */}
       <div className="max-w-5xl mx-auto px-4 pb-16">
         <div className="grid md:grid-cols-3 gap-6">
@@ -299,6 +343,9 @@ export default function PricingPage({ onLogin, onRegister, isLoggedIn, authFetch
             const displayPrice = isAnnual
               ? (tier.yearlyPrice / 12).toFixed(2)
               : tier.monthlyPrice.toFixed(2)
+            const promoDisplayPrice = isPromoActive
+              ? (isAnnual ? (tier.promoYearlyPrice / 12).toFixed(2) : tier.promoMonthlyPrice.toFixed(2))
+              : null
 
             return (
               <div
@@ -317,15 +364,35 @@ export default function PricingPage({ onLogin, onRegister, isLoggedIn, authFetch
                   </div>
                 )}
 
+                {isPromoActive && (
+                  <div className="flex justify-end mb-2">
+                    <span className="rounded-full px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide bg-teal-400/10 border border-teal-400/30 text-teal-400">
+                      50% off · 30 days
+                    </span>
+                  </div>
+                )}
+
                 <div className="mb-6">
                   <h3 className="text-xl font-bold text-cream mb-2">{tier.name}</h3>
                   <div className="flex items-baseline gap-1">
-                    <span className="text-4xl font-bold text-cream">${displayPrice}</span>
+                    {promoDisplayPrice ? (
+                      <>
+                        <span className="text-4xl font-bold text-cream">${promoDisplayPrice}</span>
+                        <span className="text-slate-500 text-sm line-through ml-1">${displayPrice}</span>
+                      </>
+                    ) : (
+                      <span className="text-4xl font-bold text-cream">${displayPrice}</span>
+                    )}
                     <span className="text-slate-400 text-sm">/month</span>
                   </div>
+                  {isPromoActive && (
+                    <p className="text-xs text-teal-400 mt-1">
+                      then ${isAnnual ? (tier.yearlyPrice / 12).toFixed(2) : tier.monthlyPrice.toFixed(2)}/mo after 30 days
+                    </p>
+                  )}
                   {isAnnual && (
                     <p className="text-xs text-gold mt-1">
-                      ${tier.yearlyPrice.toFixed(2)} billed annually
+                      ${isPromoActive ? tier.promoYearlyPrice.toFixed(2) : tier.yearlyPrice.toFixed(2)} billed annually
                     </p>
                   )}
                   <p className="text-xs text-slate-500 mt-1">AUD — all prices include GST</p>
@@ -472,6 +539,7 @@ export default function PricingPage({ onLogin, onRegister, isLoggedIn, authFetch
             authFetch={authFetch}
             onSuccess={handleSubscribed}
             onCancel={() => setSelectedTier(null)}
+            isPromoActive={isPromoActive}
           />
         </Elements>
       )}
