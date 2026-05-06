@@ -1,14 +1,15 @@
 /**
- * generateRecipeImage
- * Calls Pollinations.ai (free, no API key) to produce a food photography
- * image for a recipe. Returns a base64 data URL or null if it fails.
+ * getRecipeImageUrl
  *
- * Pollinations uses Flux by default — good quality, photorealistic.
- * Typical latency: 4–12 seconds.
+ * Returns a deterministic Pollinations.ai URL for a recipe photo.
+ * No server-side fetch — the browser loads the image directly.
+ *
+ * A seed derived from the title ensures the same recipe always shows
+ * the same generated photo across page refreshes.
  */
-export async function generateRecipeImage(title, description = '') {
-  // Build a tightly-crafted food-photography prompt
+export function getRecipeImageUrl(title, description = '') {
   const shortDesc = description ? description.substring(0, 80) : ''
+
   const prompt = [
     `professional food photography of ${title}`,
     shortDesc,
@@ -19,37 +20,24 @@ export async function generateRecipeImage(title, description = '') {
     'appetising',
     'Michelin star presentation',
     'shallow depth of field',
-    'white plate',
     'clean background',
   ]
     .filter(Boolean)
     .join(', ')
 
-  const encoded = encodeURIComponent(prompt)
-  const url = `https://image.pollinations.ai/prompt/${encoded}?width=800&height=480&nologo=true&model=flux`
+  const seed = stableHash(title)
 
-  try {
-    const controller = new AbortController()
-    const timeout = setTimeout(() => controller.abort(), 20_000) // 20s hard cap
+  return (
+    `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}` +
+    `?width=800&height=480&nologo=true&model=flux&seed=${seed}`
+  )
+}
 
-    const response = await fetch(url, { signal: controller.signal })
-    clearTimeout(timeout)
-
-    if (!response.ok) {
-      console.warn('[imageGen] Pollinations returned', response.status)
-      return null
-    }
-
-    const contentType = response.headers.get('content-type') || 'image/jpeg'
-    const buffer = await response.arrayBuffer()
-    const base64 = Buffer.from(buffer).toString('base64')
-    return `data:${contentType};base64,${base64}`
-  } catch (err) {
-    if (err.name === 'AbortError') {
-      console.warn('[imageGen] Timed out after 20s — skipping image')
-    } else {
-      console.error('[imageGen] Error:', err.message)
-    }
-    return null
+/** Simple deterministic 32-bit hash of a string → positive integer */
+function stableHash(str) {
+  let h = 0
+  for (let i = 0; i < str.length; i++) {
+    h = Math.imul(31, h) + str.charCodeAt(i) | 0
   }
+  return Math.abs(h)
 }

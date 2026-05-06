@@ -2,7 +2,7 @@ import Anthropic from '@anthropic-ai/sdk';
 import { authenticate } from './_utils/auth.js';
 import { getSubscriptionInfo, getRecipeCount, incrementRecipeCount } from './_utils/users.js';
 import { NUTRITION_MODE_INSTRUCTIONS, SYSTEM_PROMPT } from './_utils/prompts.js';
-import { generateRecipeImage } from './_utils/imageGen.js';
+import { getRecipeImageUrl } from './_utils/imageGen.js';
 
 const client = new Anthropic();
 
@@ -92,9 +92,8 @@ Use what I have and feel free to assume I have basic pantry staples (salt, peppe
       await incrementRecipeCount(stripeCustomerId);
     }
 
-    // Generate food photography image (non-blocking on failure)
-    const recipeImage = await generateRecipeImage(recipe.title, recipe.description);
-    if (recipeImage) recipe.recipe_image = recipeImage;
+    // Attach deterministic Pollinations image URL (browser loads it, no server fetch)
+    recipe.recipe_image_url = getRecipeImageUrl(recipe.title, recipe.description);
 
     res.json(recipe);
   } catch (err) {

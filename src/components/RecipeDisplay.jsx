@@ -195,16 +195,19 @@ export default function RecipeDisplay({ recipe, onNewRecipe, isFavourite, onTogg
       <div className="hk-card overflow-hidden">
 
         {/* Hero banner — photo if available, gradient fallback */}
+        {(() => {
+          const heroImg = recipe.recipe_image_url || recipe.recipe_image || null
+          return (
         <div
           className="hk-hero px-6 pt-8 pb-6"
-          style={recipe.recipe_image ? {
-            backgroundImage: `url(${recipe.recipe_image})`,
+          style={heroImg ? {
+            backgroundImage: `url(${heroImg})`,
             backgroundSize: 'cover',
             backgroundPosition: 'center',
           } : undefined}
         >
           {/* Dark overlay so text stays readable over photos */}
-          {recipe.recipe_image && (
+          {heroImg && (
             <div
               style={{
                 position: 'absolute',
@@ -276,6 +279,8 @@ export default function RecipeDisplay({ recipe, onNewRecipe, isFavourite, onTogg
           </div>
           </div>{/* end z-index wrapper */}
         </div>
+          )
+        })()}
 
         {/* ── MACRO BADGES ─────────────────────────────────────────── */}
         {(showMacros || nutritionLoading) && (
