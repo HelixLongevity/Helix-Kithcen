@@ -67,30 +67,43 @@ export default function PrintView({ recipe, onClose }) {
           </p>
         )}
 
-        {/* Ingredients */}
-        <h2 style={{ fontSize: '18px', fontWeight: 600, borderBottom: '1px solid #ddd', paddingBottom: '6px', marginBottom: '12px' }}>Ingredients</h2>
-        <ul style={{ listStyle: 'disc', paddingLeft: '20px', marginBottom: '28px' }}>
-          {recipe.ingredients.map((ing, i) => (
-            <li key={i} style={{ marginBottom: '4px', fontSize: '14px' }}>
-              {ing.amount && <strong>{ing.amount}{ing.unit ? ` ${ing.unit}` : ''}</strong>}{' '}
-              {ing.name}
-            </li>
-          ))}
-        </ul>
+        {/* Ingredients & Steps — handle meal_components or legacy flat structure */}
+        {(recipe.meal_components || [{ component_name: null, ingredients: recipe.ingredients || [], steps: recipe.steps || [] }]).map((component, ci) => (
+          <div key={ci}>
+            {component.component_name && (
+              <h2 style={{ fontSize: '20px', fontWeight: 700, marginTop: ci > 0 ? '28px' : '0', marginBottom: '8px' }}>
+                {component.component_name}
+              </h2>
+            )}
 
-        {/* Steps */}
-        <h2 style={{ fontSize: '18px', fontWeight: 600, borderBottom: '1px solid #ddd', paddingBottom: '6px', marginBottom: '12px' }}>Method</h2>
-        <ol style={{ paddingLeft: '20px', marginBottom: '28px' }}>
-          {recipe.steps.map((step, i) => (
-            <li key={i} style={{ marginBottom: '12px', fontSize: '14px' }}>
-              {step.title && <strong>{step.title}: </strong>}
-              {step.instruction}
-              {step.timer_seconds > 0 && (
-                <span style={{ color: '#888', fontSize: '12px' }}> ({formatTime(step.timer_seconds)})</span>
-              )}
-            </li>
-          ))}
-        </ol>
+            <h3 style={{ fontSize: '16px', fontWeight: 600, borderBottom: '1px solid #ddd', paddingBottom: '6px', marginBottom: '10px', marginTop: component.component_name ? '0' : '0' }}>
+              Ingredients
+            </h3>
+            <ul style={{ listStyle: 'disc', paddingLeft: '20px', marginBottom: '20px' }}>
+              {(component.ingredients || []).map((ing, i) => (
+                <li key={i} style={{ marginBottom: '4px', fontSize: '14px' }}>
+                  {ing.amount && <strong>{ing.amount}{ing.unit ? ` ${ing.unit}` : ''}</strong>}{' '}
+                  {ing.name}
+                </li>
+              ))}
+            </ul>
+
+            <h3 style={{ fontSize: '16px', fontWeight: 600, borderBottom: '1px solid #ddd', paddingBottom: '6px', marginBottom: '10px' }}>
+              Method
+            </h3>
+            <ol style={{ paddingLeft: '20px', marginBottom: '28px' }}>
+              {(component.steps || []).map((step, i) => (
+                <li key={i} style={{ marginBottom: '12px', fontSize: '14px' }}>
+                  {step.title && <strong>{step.title}: </strong>}
+                  {step.instruction}
+                  {step.timer_seconds > 0 && (
+                    <span style={{ color: '#888', fontSize: '12px' }}> ({formatTime(step.timer_seconds)})</span>
+                  )}
+                </li>
+              ))}
+            </ol>
+          </div>
+        ))}
 
         {/* Tips */}
         {recipe.tips && recipe.tips.length > 0 && (
