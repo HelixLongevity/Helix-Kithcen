@@ -176,148 +176,193 @@ export default function RecipeDisplay({ recipe, onNewRecipe, isFavourite, onTogg
     }
   }
 
+  // Derive key nutrition numbers for macro badges
+  const nutritionData = usdaNutrition || recipe.nutrition_per_serving || null
+  const aiNutrition   = recipe.nutrition_per_serving || null
+
+  const macroCalories = nutritionData?.calories ?? aiNutrition?.calories ?? null
+  const macroProtein  = nutritionData ? Math.round(nutritionData.protein_g ?? 0) : (aiNutrition ? Math.round(aiNutrition.protein_g ?? 0) : null)
+  const macroCarbs    = nutritionData ? Math.round(nutritionData.carbohydrates_g ?? 0) : (aiNutrition ? Math.round(aiNutrition.carbohydrates_g ?? 0) : null)
+  const macroFat      = nutritionData ? Math.round(nutritionData.total_fat_g ?? 0) : (aiNutrition ? Math.round(aiNutrition.total_fat_g ?? 0) : null)
+  const showMacros    = macroCalories !== null
+
+  const totalCookTime = (recipe.prep_time_minutes || 0) + (recipe.cooking_time_minutes || 0)
+
   return (
-    <div className="animate-fade-in space-y-6">
-      {/* Title & description */}
-      <div className="text-center mb-8">
-        <div className="flex items-center justify-center gap-3 mb-3">
-          <h1 className="text-3xl sm:text-4xl font-bold text-cream">
-            {recipe.title}
-          </h1>
-        </div>
+    <div className="animate-fade-in space-y-4">
 
-        {/* Nutrition mode badges */}
-        {recipe.nutritionMode && (
-          <div className="flex flex-wrap justify-center gap-2 mb-3">
-            {(Array.isArray(recipe.nutritionMode) ? recipe.nutritionMode : [recipe.nutritionMode])
-              .filter((m) => m !== 'Balanced')
-              .map((mode) => (
-                <span key={mode} className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-gold/15 text-gold border border-gold/25">
-                  {mode}
-                </span>
-              ))}
-          </div>
-        )}
+      {/* ── HERO CARD ───────────────────────────────────────────────── */}
+      <div className="hk-card overflow-hidden">
 
-        <p className="text-slate-400 text-lg max-w-xl mx-auto leading-relaxed">
-          {recipe.description}
-        </p>
-
-        {/* Allergen badges */}
-        {/* Prep time, cooking time & difficulty */}
-        {(recipe.prep_time_minutes || recipe.cooking_time_minutes || recipe.difficulty) && (
-          <div className="flex flex-wrap justify-center gap-3 mt-4">
-            {recipe.prep_time_minutes != null && (
-              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-navy-light border border-navy-lighter/50 text-slate-300">
-                <svg className="w-3.5 h-3.5 text-gold" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                </svg>
-                Prep: {recipe.prep_time_minutes} min
-              </span>
-            )}
-            {recipe.cooking_time_minutes != null && (
-              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-navy-light border border-navy-lighter/50 text-slate-300">
-                <svg className="w-3.5 h-3.5 text-gold" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        {/* Hero gradient banner */}
+        <div className="hk-hero px-6 pt-8 pb-6">
+          {/* Top row: time badge + favourite button */}
+          <div className="relative flex items-start justify-between mb-5">
+            {totalCookTime > 0 ? (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-navy/60 border border-gold/30 text-gold backdrop-blur-sm">
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                Cook: {recipe.cooking_time_minutes} min
+                {totalCookTime} min
               </span>
+            ) : <span />}
+
+            {/* Heart / save button */}
+            <button
+              onClick={onToggleFavourite}
+              className="w-10 h-10 rounded-full flex items-center justify-center transition-all cursor-pointer border border-gold/30 bg-navy/60 backdrop-blur-sm hover:bg-navy/80"
+              title={isFavourite ? 'Remove from favourites' : 'Save to favourites'}
+            >
+              <svg className="w-5 h-5" viewBox="0 0 24 24" fill={isFavourite ? '#C8952A' : 'none'} stroke={isFavourite ? '#C8952A' : '#94a3b8'} strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+              </svg>
+            </button>
+          </div>
+
+          {/* Title */}
+          <div className="mb-1">
+            <p className="hk-section-heading">Featured Recipe</p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-cream leading-tight">
+              {recipe.title}
+            </h1>
+          </div>
+
+          {/* Description */}
+          <p className="text-slate-400 text-sm leading-relaxed mt-2 line-clamp-2">
+            {recipe.description}
+          </p>
+
+          {/* Action row */}
+          <div className="flex items-center gap-2 mt-4">
+            <button
+              onClick={onPrint}
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold text-slate-300 transition-all cursor-pointer border border-navy-lighter/60 hover:border-gold/30 hover:text-cream bg-navy/40"
+              title="Print recipe"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+              </svg>
+              Print
+            </button>
+            <button
+              onClick={() => setShowShoppingList(true)}
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold text-slate-300 transition-all cursor-pointer border border-navy-lighter/60 hover:border-gold/30 hover:text-cream bg-navy/40"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
+              Shopping list
+            </button>
+          </div>
+        </div>
+
+        {/* ── MACRO BADGES ─────────────────────────────────────────── */}
+        {(showMacros || nutritionLoading) && (
+          <div className="px-6 py-5 border-t border-gold/10">
+            <p className="hk-section-heading mb-4">Macros Per Serving</p>
+            {nutritionLoading ? (
+              <div className="flex gap-5 justify-around">
+                {[1,2,3,4].map(i => (
+                  <div key={i} className="macro-badge opacity-40 animate-pulse">
+                    <div className="macro-badge-ring border-slate-600" style={{width:56,height:56}} />
+                    <div className="w-8 h-2 rounded bg-slate-700 mt-1" />
+                    <div className="w-10 h-2 rounded bg-slate-800 mt-0.5" />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="flex gap-3 justify-around">
+                {/* Protein */}
+                <div className="macro-badge">
+                  <div className="macro-badge-ring border-green-500/60" style={{borderColor:'rgba(34,197,94,0.6)'}}>
+                    🥩
+                  </div>
+                  <span className="macro-badge-value">{macroProtein}g</span>
+                  <span className="macro-badge-label">Protein</span>
+                </div>
+                {/* Carbs */}
+                <div className="macro-badge">
+                  <div className="macro-badge-ring" style={{borderColor:'rgba(234,179,8,0.6)'}}>
+                    🌾
+                  </div>
+                  <span className="macro-badge-value">{macroCarbs}g</span>
+                  <span className="macro-badge-label">Carbs</span>
+                </div>
+                {/* Fats */}
+                <div className="macro-badge">
+                  <div className="macro-badge-ring" style={{borderColor:'rgba(249,115,22,0.6)'}}>
+                    🫒
+                  </div>
+                  <span className="macro-badge-value">{macroFat}g</span>
+                  <span className="macro-badge-label">Fats</span>
+                </div>
+                {/* Calories */}
+                <div className="macro-badge">
+                  <div className="macro-badge-ring" style={{borderColor:'rgba(200,149,42,0.7)'}}>
+                    🔥
+                  </div>
+                  <span className="macro-badge-value">{Math.round(macroCalories)}</span>
+                  <span className="macro-badge-label">Calories</span>
+                </div>
+              </div>
             )}
-            {recipe.difficulty && (
-              <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border ${
-                recipe.difficulty === 'easy' ? 'bg-green-900/30 text-green-300 border-green-600/40' :
-                recipe.difficulty === 'medium' ? 'bg-amber-900/30 text-amber-300 border-amber-600/40' :
-                'bg-red-900/30 text-red-300 border-red-600/40'
-              }`}>
-                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
-                {recipe.difficulty.charAt(0).toUpperCase() + recipe.difficulty.slice(1)}
-              </span>
+            {nutritionSource === 'edamam' && !nutritionLoading && (
+              <p className="text-center text-[10px] text-slate-600 mt-3">Verified by Edamam · per serving</p>
+            )}
+            {nutritionSource === 'ai' && !nutritionLoading && showMacros && (
+              <p className="text-center text-[10px] text-slate-600 mt-3">AI estimate · per serving</p>
             )}
           </div>
         )}
 
-        {recipe.allergens && recipe.allergens.length > 0 && (
-          <div className="flex flex-wrap justify-center gap-2 mt-4">
-            {recipe.allergens.map((allergen) => (
-              <span
-                key={allergen}
-                className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium border ${
-                  ALLERGEN_COLORS[allergen] || 'bg-slate-700/30 text-slate-300 border-slate-600/40'
-                }`}
-              >
-                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                {allergen.charAt(0).toUpperCase() + allergen.slice(1)}
-              </span>
-            ))}
-          </div>
-        )}
-
-        {/* Edamam health & diet labels */}
-        {edamamMeta && (() => {
-          const healthBadges = (edamamMeta.healthLabels || [])
-            .map(k => HEALTH_LABEL_CONFIG[k])
-            .filter(Boolean)
-          const dietBadges = (edamamMeta.dietLabels || [])
-            .map(k => DIET_LABEL_CONFIG[k])
-            .filter(Boolean)
-          const allBadges = [...healthBadges, ...dietBadges]
-          if (allBadges.length === 0) return null
+        {/* ── DIET / HEALTH TAGS ────────────────────────────────────── */}
+        {(() => {
+          const modeBadges = recipe.nutritionMode
+            ? (Array.isArray(recipe.nutritionMode) ? recipe.nutritionMode : [recipe.nutritionMode]).filter(m => m !== 'Balanced')
+            : []
+          const allergenBadges = recipe.allergens || []
+          const healthBadges = edamamMeta ? (edamamMeta.healthLabels || []).map(k => HEALTH_LABEL_CONFIG[k]).filter(Boolean) : []
+          const dietBadges   = edamamMeta ? (edamamMeta.dietLabels   || []).map(k => DIET_LABEL_CONFIG[k]).filter(Boolean)   : []
+          const difficultyBadge = recipe.difficulty
+          const prepBadge = recipe.prep_time_minutes
+          const hasTags = modeBadges.length || allergenBadges.length || healthBadges.length || dietBadges.length || difficultyBadge || prepBadge
+          if (!hasTags) return null
           return (
-            <div className="flex flex-wrap justify-center gap-2 mt-3">
-              {healthBadges.map((cfg) => (
-                <span key={cfg.label} className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium border ${cfg.color}`}>
-                  <span>{cfg.emoji}</span>
-                  {cfg.label}
-                </span>
-              ))}
-              {dietBadges.map((cfg) => (
-                <span key={cfg.label} className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium border ${cfg.color}`}>
-                  ✓ {cfg.label}
-                </span>
-              ))}
+            <div className="px-6 pb-5 border-t border-gold/10 pt-4">
+              <p className="hk-section-heading mb-3">Details</p>
+              <div className="flex flex-wrap gap-1.5">
+                {prepBadge != null && (
+                  <span className="hk-pill bg-navy-lighter/40 border-navy-lighter/60 text-slate-300">
+                    ✏️ Prep {prepBadge} min
+                  </span>
+                )}
+                {difficultyBadge && (
+                  <span className={`hk-pill border ${
+                    difficultyBadge === 'easy' ? 'bg-green-900/30 text-green-300 border-green-600/40' :
+                    difficultyBadge === 'medium' ? 'bg-amber-900/30 text-amber-300 border-amber-600/40' :
+                    'bg-red-900/30 text-red-300 border-red-600/40'
+                  }`}>
+                    ⚡ {difficultyBadge.charAt(0).toUpperCase() + difficultyBadge.slice(1)}
+                  </span>
+                )}
+                {modeBadges.map(m => (
+                  <span key={m} className="hk-pill bg-gold/10 text-gold border-gold/25">{m}</span>
+                ))}
+                {healthBadges.map(cfg => (
+                  <span key={cfg.label} className={`hk-pill ${cfg.color}`}>{cfg.emoji} {cfg.label}</span>
+                ))}
+                {dietBadges.map(cfg => (
+                  <span key={cfg.label} className={`hk-pill ${cfg.color}`}>✓ {cfg.label}</span>
+                ))}
+                {allergenBadges.map(a => (
+                  <span key={a} className={`hk-pill ${ALLERGEN_COLORS[a] || 'bg-slate-700/30 text-slate-300 border-slate-600/40'}`}>
+                    ⚠️ {a.charAt(0).toUpperCase() + a.slice(1)}
+                  </span>
+                ))}
+              </div>
             </div>
           )
         })()}
-
-        {/* Action buttons */}
-        <div className="flex items-center justify-center gap-3 mt-4">
-          <button
-            onClick={onToggleFavourite}
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-all cursor-pointer border border-navy-lighter hover:border-gold/30"
-            title={isFavourite ? 'Remove from favourites' : 'Save to favourites'}
-          >
-            <svg className="w-5 h-5" viewBox="0 0 24 24" fill={isFavourite ? '#C8952A' : 'none'} stroke={isFavourite ? '#C8952A' : 'currentColor'} strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-            </svg>
-            <span className={isFavourite ? 'text-gold' : 'text-slate-400'}>
-              {isFavourite ? 'Saved' : 'Save'}
-            </span>
-          </button>
-          <button
-            onClick={onPrint}
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium text-slate-400 transition-all cursor-pointer border border-navy-lighter hover:border-gold/30 hover:text-cream"
-            title="Print recipe"
-          >
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-            </svg>
-            Print
-          </button>
-          <button
-            onClick={() => setShowShoppingList(true)}
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium text-slate-400 transition-all cursor-pointer border border-navy-lighter hover:border-gold/30 hover:text-cream"
-            title="Shopping list"
-          >
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-            </svg>
-            Shop
-          </button>
-        </div>
       </div>
 
       {/* Shopping List Modal */}
@@ -329,21 +374,21 @@ export default function RecipeDisplay({ recipe, onNewRecipe, isFavourite, onTogg
       {(recipe.meal_components || [{ component_name: null, ingredients: recipe.ingredients, steps: recipe.steps }]).map((component, ci) => {
         const ingredientOffset = (recipe.meal_components || []).slice(0, ci).reduce((sum, c) => sum + (c.ingredients?.length || 0), 0)
         return (
-          <div key={ci} className="space-y-6">
+          <div key={ci} className="space-y-4">
             {component.component_name && (
-              <h2 className="text-xl font-bold text-cream border-b border-gold/20 pb-2 mt-2">
+              <h2 className="text-lg font-bold text-cream border-b border-gold/20 pb-2 mt-2 px-1">
                 {component.component_name}
               </h2>
             )}
 
             {/* Ingredients */}
-            <div className="bg-navy-light rounded-xl p-6 border border-navy-lighter/50">
-              <h3 className="text-lg font-semibold text-gold mb-4 flex items-center gap-2">
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <div className="hk-card p-6">
+              <p className="hk-section-heading flex items-center gap-2">
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                 </svg>
                 Ingredients
-              </h3>
+              </p>
               <ul className="space-y-2">
                 {(component.ingredients || []).map((ing, i) => {
                   const globalIndex = ingredientOffset + i
@@ -404,13 +449,13 @@ export default function RecipeDisplay({ recipe, onNewRecipe, isFavourite, onTogg
             </div>
 
             {/* Steps */}
-            <div className="bg-navy-light rounded-xl p-6 border border-navy-lighter/50">
-              <h3 className="text-lg font-semibold text-gold mb-4 flex items-center gap-2">
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <div className="hk-card p-6">
+              <p className="hk-section-heading flex items-center gap-2">
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
                 </svg>
                 Method
-              </h3>
+              </p>
               <ol className="space-y-5">
                 {(component.steps || []).map((step, i) => (
                   <li key={i} className="flex gap-4">
@@ -441,16 +486,15 @@ export default function RecipeDisplay({ recipe, onNewRecipe, isFavourite, onTogg
 
       {/* Chef Marco Tips */}
       {recipe.tips && recipe.tips.length > 0 && (
-        <div className="bg-gold/8 rounded-xl p-6 border border-gold/20">
-          <h2 className="text-lg font-semibold text-gold mb-4 flex items-center gap-2">
-            <span className="text-xl">👨‍🍳</span>
-            Chef Marco says...
-          </h2>
+        <div className="hk-card p-6 border-gold/20">
+          <p className="hk-section-heading flex items-center gap-2">
+            <span>👨‍🍳</span> Chef Marco Says
+          </p>
           <ul className="space-y-3">
             {recipe.tips.map((tip, i) => (
               <li key={i} className="flex gap-3 text-slate-300">
                 <span className="text-gold shrink-0 mt-0.5">★</span>
-                <p className="leading-relaxed">{tip}</p>
+                <p className="leading-relaxed text-sm">{tip}</p>
               </li>
             ))}
           </ul>
@@ -459,14 +503,14 @@ export default function RecipeDisplay({ recipe, onNewRecipe, isFavourite, onTogg
 
       {/* Notes */}
       {recipe.notes && (
-        <div className="bg-gold/5 rounded-xl p-6 border border-gold/15">
-          <h2 className="text-lg font-semibold text-gold mb-3 flex items-center gap-2">
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <div className="hk-card p-6">
+          <p className="hk-section-heading flex items-center gap-2">
+            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             Chef Marco's Notes
-          </h2>
-          <p className="text-slate-300 leading-relaxed">{recipe.notes}</p>
+          </p>
+          <p className="text-slate-300 leading-relaxed text-sm">{recipe.notes}</p>
         </div>
       )}
 
@@ -474,13 +518,13 @@ export default function RecipeDisplay({ recipe, onNewRecipe, isFavourite, onTogg
       {recipe.nutrition_per_serving && (() => {
         const nutrition = nutritionSource === 'edamam' && usdaNutrition ? usdaNutrition : recipe.nutrition_per_serving
         return (
-          <div className="bg-navy-light rounded-xl p-6 border border-navy-lighter/50 relative">
-            <h2 className="text-lg font-semibold text-gold mb-4 flex items-center gap-2">
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <div className="hk-card p-6 relative">
+            <p className="hk-section-heading flex items-center gap-2">
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M3 6h18M3 12h18M3 18h18" />
               </svg>
-              Nutrition Per Serving (Full Meal)
-            </h2>
+              Full Nutrition Per Serving
+            </p>
             {nutritionLoading && (
               <div className="absolute inset-0 bg-navy-light/80 rounded-xl flex items-center justify-center z-10">
                 <div className="flex items-center gap-2 text-slate-400 text-sm">
@@ -561,11 +605,14 @@ export default function RecipeDisplay({ recipe, onNewRecipe, isFavourite, onTogg
       })()}
 
       {/* New recipe button */}
-      <div className="pt-4 pb-8">
+      <div className="pt-2 pb-4">
         <button
           onClick={onNewRecipe}
-          className="w-full bg-navy-lighter hover:bg-navy-lighter/80 text-cream font-medium py-4 px-6 rounded-xl transition-colors border border-navy-lighter cursor-pointer"
+          className="w-full bg-gold/10 hover:bg-gold/20 text-gold font-semibold py-4 px-6 rounded-2xl transition-all border border-gold/25 hover:border-gold/50 cursor-pointer flex items-center justify-center gap-2"
         >
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+          </svg>
           Cook Something Else
         </button>
       </div>

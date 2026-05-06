@@ -260,12 +260,50 @@ function AppContent() {
   // --- Authenticated & subscribed app ---
 
   const TABS = [
-    { id: 'recipes', label: 'Recipes' },
-    { id: 'favourites', label: 'Favourites' },
-    { id: 'planner', label: 'Meal Planner' },
-    { id: 'macros', label: 'Macro Targets' },
-    { id: 'dish-request', label: 'Dish Request' },
-    { id: 'account', label: 'Account' },
+    {
+      id: 'recipes', label: 'Recipes',
+      icon: (active) => (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? 2.2 : 1.8} strokeLinecap="round" strokeLinejoin="round">
+          <path d="M3 11l19-9-9 19-2-8-8-2z"/>
+        </svg>
+      ),
+    },
+    {
+      id: 'favourites', label: 'Saved',
+      icon: (active) => (
+        <svg viewBox="0 0 24 24" fill={active ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth={active ? 0 : 1.8} strokeLinecap="round" strokeLinejoin="round">
+          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+        </svg>
+      ),
+    },
+    {
+      id: 'planner', label: 'Planner',
+      icon: (active) => (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? 2.2 : 1.8} strokeLinecap="round" strokeLinejoin="round">
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+          <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/>
+          <line x1="3" y1="10" x2="21" y2="10"/>
+        </svg>
+      ),
+    },
+    {
+      id: 'macros', label: 'Macros',
+      icon: (active) => (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? 2.2 : 1.8} strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="12" cy="12" r="10"/>
+          <polyline points="12 6 12 12 16 14"/>
+        </svg>
+      ),
+    },
+    {
+      id: 'account', label: 'Me',
+      icon: (active) => (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? 2.2 : 1.8} strokeLinecap="round" strokeLinejoin="round">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+          <circle cx="12" cy="7" r="4"/>
+        </svg>
+      ),
+    },
   ]
 
   const handleSubmit = async (formData) => {
@@ -641,77 +679,81 @@ function AppContent() {
         <HelpTips onClose={() => setShowHelp(false)} />
       )}
 
-      <header className="border-b border-navy-lighter/50 bg-navy/80 backdrop-blur-sm sticky top-0 z-10">
-        <div className="max-w-3xl mx-auto px-4 py-4 flex items-center justify-between">
+      {/* ── Top header ──────────────────────────────────────────────── */}
+      <header className="sticky top-0 z-10 bg-navy/90 backdrop-blur-sm border-b border-gold/10">
+        <div className="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between">
           <HelixLogo />
-          <div className="flex items-center gap-3">
+
+          <div className="flex items-center gap-2">
             {recipeLimit && (
-              <span className={`text-xs font-medium px-2 py-1 rounded-full ${
-                atLimit ? 'bg-red-900/30 text-red-300 border border-red-700/40' : 'bg-gold/10 text-gold border border-gold/20'
+              <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${
+                atLimit
+                  ? 'bg-red-900/30 text-red-300 border border-red-700/40'
+                  : 'bg-gold/10 text-gold border border-gold/20'
               }`}>
-                {recipeCount}/{recipeLimit} recipes
+                {recipeCount}/{recipeLimit}
               </span>
             )}
+
+            {/* Contextual new-recipe button */}
             {recipe && tab === 'recipes' && (
               <button
                 onClick={handleNewRecipe}
-                className="text-sm font-medium text-gold hover:text-gold-light transition-colors cursor-pointer"
+                className="text-xs font-semibold text-gold hover:text-gold-light transition-colors cursor-pointer px-2 py-1 rounded-lg border border-gold/25 hover:border-gold/50 bg-gold/5"
               >
-                + New Recipe
+                + New
               </button>
             )}
             {macroRecipe && tab === 'macros' && (
               <button
                 onClick={handleNewMacroRecipe}
-                className="text-sm font-medium text-gold hover:text-gold-light transition-colors cursor-pointer"
+                className="text-xs font-semibold text-gold hover:text-gold-light transition-colors cursor-pointer px-2 py-1 rounded-lg border border-gold/25 hover:border-gold/50 bg-gold/5"
               >
-                + New Macro Recipe
+                + New
               </button>
             )}
             {dishRecipe && tab === 'dish-request' && (
               <button
                 onClick={handleNewDishRecipe}
-                className="text-sm font-medium text-gold hover:text-gold-light transition-colors cursor-pointer"
+                className="text-xs font-semibold text-gold hover:text-gold-light transition-colors cursor-pointer px-2 py-1 rounded-lg border border-gold/25 hover:border-gold/50 bg-gold/5"
               >
-                + New Dish Request
+                + New
               </button>
             )}
-            <div className="relative ml-2">
+
+            {/* Menu */}
+            <div className="relative">
               <button
                 onClick={() => setShowMenu((v) => !v)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gold/30 bg-gold/5 hover:bg-gold/15 text-gold text-xs font-medium transition-colors cursor-pointer"
+                className="w-9 h-9 flex items-center justify-center rounded-xl border border-gold/25 bg-gold/5 hover:bg-gold/15 text-gold transition-colors cursor-pointer"
                 title="Menu"
               >
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M2 3.5h10M2 7h10M2 10.5h10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <path d="M2 4h12M2 8h12M2 12h12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
                 </svg>
-                Menu
               </button>
               {showMenu && (
                 <>
                   <div className="fixed inset-0 z-20" onClick={() => setShowMenu(false)} />
-                  <div className="absolute right-0 top-full mt-1 z-30 bg-navy-light border border-navy-lighter/60 rounded-xl shadow-xl min-w-[180px] py-1 overflow-hidden">
+                  <div className="absolute right-0 top-full mt-2 z-30 bg-navy-light border border-navy-lighter/60 rounded-2xl shadow-2xl min-w-[190px] py-2 overflow-hidden">
                     <button
                       onClick={() => { setShowHelp(true); setShowMenu(false) }}
-                      className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-cream hover:bg-navy-lighter/40 transition-colors cursor-pointer text-left"
+                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-cream hover:bg-navy-lighter/40 transition-colors cursor-pointer text-left"
                     >
-                      <span className="text-base opacity-70">💡</span>
-                      Help & Tips
+                      <span className="text-base">💡</span> Help & Tips
                     </button>
                     <button
                       onClick={() => { setShowFeedback(true); setShowMenu(false) }}
-                      className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-cream hover:bg-navy-lighter/40 transition-colors cursor-pointer text-left"
+                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-cream hover:bg-navy-lighter/40 transition-colors cursor-pointer text-left"
                     >
-                      <span className="text-base opacity-70">💬</span>
-                      Feedback
+                      <span className="text-base">💬</span> Feedback
                     </button>
-                    <div className="border-t border-navy-lighter/40 my-1" />
+                    <div className="border-t border-navy-lighter/40 my-1.5 mx-3" />
                     <button
                       onClick={() => { logout(); setShowMenu(false) }}
-                      className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-red-400 hover:bg-navy-lighter/40 transition-colors cursor-pointer text-left"
+                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-400 hover:bg-navy-lighter/40 transition-colors cursor-pointer text-left"
                     >
-                      <span className="text-base opacity-70">🚪</span>
-                      Sign Out
+                      <span className="text-base">🚪</span> Sign Out
                     </button>
                   </div>
                 </>
@@ -719,32 +761,10 @@ function AppContent() {
             </div>
           </div>
         </div>
-
-        <div className="max-w-3xl mx-auto px-4">
-          <nav className="flex gap-1 -mb-px overflow-x-auto">
-            {TABS.map((t) => (
-              <button
-                key={t.id}
-                onClick={() => setTab(t.id)}
-                className={`px-4 py-2.5 text-sm font-medium transition-colors cursor-pointer border-b-2 whitespace-nowrap ${
-                  tab === t.id
-                    ? 'border-gold text-gold'
-                    : 'border-transparent text-slate-400 hover:text-cream hover:border-navy-lighter'
-                }`}
-              >
-                {t.label}
-                {t.id === 'favourites' && favourites.length > 0 && (
-                  <span className="ml-1.5 px-1.5 py-0.5 rounded-full text-xs bg-gold/15 text-gold">
-                    {favourites.length}
-                  </span>
-                )}
-              </button>
-            ))}
-          </nav>
-        </div>
       </header>
 
-      <main className="max-w-3xl mx-auto px-4 py-8">
+      {/* ── Main content — padded at bottom for nav bar ─────────────── */}
+      <main className="max-w-3xl mx-auto px-4 py-6 pb-28">
         {tab === 'recipes' && (
           <>
             {loading ? (
@@ -760,12 +780,13 @@ function AppContent() {
               />
             ) : (
               <>
-                <div className="text-center mb-8">
-                  <h1 className="text-3xl sm:text-4xl font-bold text-cream mb-2">
+                <div className="text-center mb-8 animate-fade-in">
+                  <p className="hk-section-heading mb-2">Helix Kitchen</p>
+                  <h1 className="text-3xl sm:text-4xl font-bold text-cream mb-2 leading-tight">
                     What's cooking tonight?
                   </h1>
-                  <p className="text-slate-400 text-lg">
-                    Tell Chef Marco what you've got, and he'll craft something brilliant.
+                  <p className="text-slate-400">
+                    Tell Chef Marco what you've got — he'll craft something brilliant.
                   </p>
                 </div>
                 {error && (
@@ -945,11 +966,33 @@ function AppContent() {
         )}
       </main>
 
-      <footer className="border-t border-navy-lighter/30 mt-auto">
-        <div className="max-w-3xl mx-auto px-4 py-6 text-center text-slate-500 text-xs opacity-60 leading-relaxed">
-          Chef Marco is an AI-powered culinary assistant. Recipes and nutritional information are AI-generated estimates only. Use of this app does not constitute medical advice. Consult a qualified medical practitioner or dietitian for personalised guidance. &middot; Helix Longevity
+      {/* ── Bottom navigation bar ──────────────────────────────────── */}
+      <nav className="hk-bottom-nav no-print">
+        <div className="flex items-center max-w-3xl mx-auto">
+          {TABS.map((t) => {
+            const isActive = tab === t.id
+            return (
+              <button
+                key={t.id}
+                onClick={() => setTab(t.id)}
+                className={`hk-nav-btn${isActive ? ' active' : ''}`}
+              >
+                {t.icon(isActive)}
+                <span>{t.label}</span>
+                {t.id === 'favourites' && favourites.length > 0 && (
+                  <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-gold text-navy text-[9px] font-bold flex items-center justify-center">
+                    {favourites.length > 9 ? '9+' : favourites.length}
+                  </span>
+                )}
+              </button>
+            )
+          })}
         </div>
-      </footer>
+        {/* Tiny legal line inside nav */}
+        <p className="text-center text-[9px] text-slate-600 pb-1 px-4 leading-tight">
+          AI-generated estimates only — not medical advice · Helix Longevity
+        </p>
+      </nav>
     </div>
   )
 }
