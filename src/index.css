@@ -103,6 +103,10 @@ body {
   position: relative;
   overflow: hidden;
   min-height: 220px;
+  /* Fix iOS Safari: overflow:hidden + border-radius doesn't clip absolute children */
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+  isolation: isolate;
 }
 
 .hk-hero::before {

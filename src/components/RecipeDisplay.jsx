@@ -203,6 +203,7 @@ export default function RecipeDisplay({ recipe, onNewRecipe, isFavourite, onTogg
             <img
               src={heroImg}
               alt={recipe.title}
+              crossOrigin="anonymous"
               onError={(e) => { e.currentTarget.style.display = 'none' }}
               style={{
                 position: 'absolute',
@@ -211,7 +212,6 @@ export default function RecipeDisplay({ recipe, onNewRecipe, isFavourite, onTogg
                 height: '100%',
                 objectFit: 'cover',
                 objectPosition: 'center',
-                borderRadius: 'inherit',
               }}
             />
           )}
