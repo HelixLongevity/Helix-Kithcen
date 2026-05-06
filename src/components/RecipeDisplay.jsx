@@ -194,8 +194,28 @@ export default function RecipeDisplay({ recipe, onNewRecipe, isFavourite, onTogg
       {/* ── HERO CARD ───────────────────────────────────────────────── */}
       <div className="hk-card overflow-hidden">
 
-        {/* Hero gradient banner */}
-        <div className="hk-hero px-6 pt-8 pb-6">
+        {/* Hero banner — photo if available, gradient fallback */}
+        <div
+          className="hk-hero px-6 pt-8 pb-6"
+          style={recipe.recipe_image ? {
+            backgroundImage: `url(${recipe.recipe_image})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+          } : undefined}
+        >
+          {/* Dark overlay so text stays readable over photos */}
+          {recipe.recipe_image && (
+            <div
+              style={{
+                position: 'absolute',
+                inset: 0,
+                background: 'linear-gradient(to bottom, rgba(10,22,40,0.45) 0%, rgba(10,22,40,0.75) 60%, rgba(10,22,40,0.92) 100%)',
+                borderRadius: 'inherit',
+              }}
+            />
+          )}
+          {/* Content sits above overlay */}
+          <div style={{ position: 'relative', zIndex: 1 }}>
           {/* Top row: time badge + favourite button */}
           <div className="relative flex items-start justify-between mb-5">
             {totalCookTime > 0 ? (
@@ -254,6 +274,7 @@ export default function RecipeDisplay({ recipe, onNewRecipe, isFavourite, onTogg
               Shopping list
             </button>
           </div>
+          </div>{/* end z-index wrapper */}
         </div>
 
         {/* ── MACRO BADGES ─────────────────────────────────────────── */}

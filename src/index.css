@@ -102,6 +102,7 @@ body {
   border-radius: 1.25rem 1.25rem 0 0;
   position: relative;
   overflow: hidden;
+  min-height: 220px;
 }
 
 .hk-hero::before {

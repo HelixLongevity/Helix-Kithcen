@@ -2,6 +2,7 @@ import Anthropic from '@anthropic-ai/sdk';
 import { authenticate } from './_utils/auth.js';
 import { getSubscriptionInfo, incrementRecipeCount } from './_utils/users.js';
 import { MACRO_SYSTEM_PROMPT } from './_utils/prompts.js';
+import { generateRecipeImage } from './_utils/imageGen.js';
 
 const client = new Anthropic();
 
@@ -108,6 +109,11 @@ CRITICAL: Your response MUST be valid JSON only. No preamble, no explanation, no
     if (!isAdmin) {
       await incrementRecipeCount(stripeCustomerId);
     }
+
+    // Generate food photography image (non-blocking on failure)
+    const recipeImage = await generateRecipeImage(recipe.title, recipe.description);
+    if (recipeImage) recipe.recipe_image = recipeImage;
+
     res.json(recipe);
   } catch (err) {
     console.error('Macro API Error:', err);
